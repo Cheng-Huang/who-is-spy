@@ -1,9 +1,18 @@
 import React, { useState } from 'react';
-import { User, Skull, RotateCcw, Trophy } from 'lucide-react';
+import { Skull, RotateCcw, Trophy } from 'lucide-react';
 
 const GamePhase = ({ players, onRestart }) => {
     const [alivePlayers, setAlivePlayers] = useState(players.map((p, i) => ({ ...p, id: i, alive: true })));
     const [winner, setWinner] = useState(null);
+    const minCardWidth =
+        players.length <= 5 ? 0 :
+        players.length <= 8 ? 160 :
+        150;
+
+    const gridStyle =
+        players.length <= 5
+            ? { gridTemplateColumns: `repeat(${players.length}, minmax(0, 1fr))` }
+            : { gridTemplateColumns: `repeat(auto-fit, minmax(${minCardWidth}px, 1fr))` };
 
     const toggleStatus = (id) => {
         if (winner) return;
@@ -42,17 +51,17 @@ const GamePhase = ({ players, onRestart }) => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900 p-6">
+        <div className="min-h-screen bg-gray-50 text-gray-900 p-6 sm:p-8 text-xl sm:text-2xl">
             <div className="max-w-4xl mx-auto space-y-8">
 
                 {/* Header */}
                 <div className="flex items-center justify-between">
-                    <h1 className="text-3xl font-bold text-indigo-900">游戏进行中</h1>
+                    <h1 className="text-5xl sm:text-6xl font-black text-indigo-900">游戏进行中</h1>
                     <button
                         onClick={onRestart}
-                        className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-100 text-gray-600"
+                        className="p-3 bg-white rounded-full shadow-sm hover:bg-gray-100 text-gray-600"
                     >
-                        <RotateCcw size={24} />
+                        <RotateCcw size={28} />
                     </button>
                 </div>
 
@@ -61,22 +70,22 @@ const GamePhase = ({ players, onRestart }) => {
                     <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-6 rounded-2xl shadow-lg flex items-center justify-center gap-4 animate-in slide-in-from-top duration-500">
                         <Trophy size={48} className="text-yellow-100" />
                         <div>
-                            <h2 className="text-3xl font-black">
+                            <h2 className="text-5xl sm:text-6xl font-black">
                                 {winner === 'spy' ? '卧底胜利!' : '平民胜利!'}
                             </h2>
-                            <p className="text-yellow-100 opacity-90">点击下方卡片查看所有身份</p>
+                            <p className="text-yellow-100 opacity-90 text-xl sm:text-2xl">点击下方卡片查看所有身份</p>
                         </div>
                     </div>
                 )}
 
                 {/* Player Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid gap-3 sm:gap-4" style={gridStyle}>
                     {alivePlayers.map((player) => (
                         <button
                             key={player.id}
                             onClick={() => toggleStatus(player.id)}
                             disabled={!!winner}
-                            className={`relative group p-4 rounded-2xl transition-all duration-300 border-2 text-left
+                            className={`relative group p-3 sm:p-4 rounded-2xl transition-all duration-300 border-2 text-left
                 ${!player.alive
                                     ? 'bg-gray-200 border-gray-200 opacity-60 grayscale'
                                     : 'bg-white border-white shadow-md hover:shadow-xl hover:-translate-y-1'
@@ -85,17 +94,17 @@ const GamePhase = ({ players, onRestart }) => {
               `}
                         >
                             <div className="flex items-center justify-between mb-3">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
+                                <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-black text-[clamp(18px,2vw,28px)]
                   ${player.alive ? 'bg-indigo-500' : 'bg-gray-400'}
                 `}>
                                     {player.id + 1}
                                 </div>
-                                {!player.alive && <Skull className="text-gray-500" />}
+                                {!player.alive && <Skull size={28} className="text-gray-500" />}
                             </div>
 
                             <div className="space-y-1">
-                                <div className="text-sm text-gray-500">状态</div>
-                                <div className={`font-bold text-lg ${player.alive ? 'text-green-600' : 'text-red-500'}`}>
+                                <div className="text-lg sm:text-xl text-gray-500 font-semibold">状态</div>
+                                <div className={`font-black text-[clamp(28px,2.8vw,44px)] leading-none ${player.alive ? 'text-green-600' : 'text-red-500'}`}>
                                     {player.alive ? '存活' : '淘汰'}
                                 </div>
                             </div>
@@ -103,10 +112,15 @@ const GamePhase = ({ players, onRestart }) => {
                             {/* Reveal Role on Game Over */}
                             {winner && (
                                 <div className="mt-4 pt-4 border-t border-gray-100 animate-in fade-in">
-                                    <div className="text-xs text-gray-400 uppercase tracking-wider">身份</div>
-                                    <div className="font-bold text-indigo-900 flex items-center gap-2">
+                                    <div className="text-lg sm:text-xl text-gray-500 font-semibold tracking-wide">身份</div>
+                                    <div className="mt-1 font-black text-indigo-900 text-[clamp(24px,2.4vw,40px)] leading-none">
                                         {getRoleName(player.role)}
-                                        <span className="text-xs font-normal text-gray-500">({player.word || '无'})</span>
+                                    </div>
+                                    <div
+                                        className="mt-2 text-xl sm:text-2xl font-bold text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis"
+                                        title={player.word || '无'}
+                                    >
+                                        {player.word || '无'}
                                     </div>
                                 </div>
                             )}

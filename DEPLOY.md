@@ -70,3 +70,59 @@
 4.  **获取链接**：
     *   ngrok 会生成一个类似 `https://xxxx-xxxx.ngrok-free.app` 的链接。
     *   将这个链接发给朋友即可（注意：免费版 ngrok 链接有效期较短，且速度可能受限）。
+
+---
+
+## 方案四：部署到腾讯云服务器（不影响已有 /lucky-draw/）
+
+适合你已经有一台可公网访问的服务器（如 `124.221.23.178`），并且服务器上已经跑着其它站点（例如 `http://124.221.23.178/lucky-draw/`）。
+
+本项目已配置为部署在子路径：`/who-is-spy/`，用于避免与 `/lucky-draw/` 冲突。
+
+### 1) 本地构建
+
+在项目根目录执行：
+
+```bash
+npm run build
+```
+
+构建产物在 `dist/`。
+
+### 2) 上传到服务器目录
+
+假设服务器 Nginx 站点根目录为 `/var/www/html`（如不同，请按实际路径调整），将 `dist/` 上传到：
+`/var/www/html/who-is-spy/`
+
+推荐使用 `rsync`（增量、可删除旧文件）：
+
+```bash
+rsync -avz --delete dist/ <USER>@124.221.23.178:/var/www/html/who-is-spy/
+```
+
+也可以用 `scp`（全量拷贝）：
+
+```bash
+scp -r dist/* <USER>@124.221.23.178:/var/www/html/who-is-spy/
+```
+
+### 3) 配置 Nginx（SPA 刷新回退）
+
+在你的 Nginx server 配置里添加（不影响已有的 `/lucky-draw/` location）：
+
+```nginx
+location /who-is-spy/ {
+  root /var/www/html;
+  try_files $uri $uri/ /who-is-spy/index.html;
+}
+```
+
+然后执行：
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### 4) 访问
+
+`http://124.221.23.178/who-is-spy/`

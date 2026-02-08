@@ -27,14 +27,10 @@ class WordManager {
     }
 
     getUnusedWord() {
-        const availableWords = this.vocabulary.filter(word => !this.usedWordIds.includes(word.id));
-
-        if (availableWords.length === 0) {
-            return null;
-        }
-
-        const randomIndex = Math.floor(Math.random() * availableWords.length);
-        return availableWords[randomIndex];
+        // Return the first unused word in the vocabulary array (document order).
+        // This makes word selection deterministic and consistent with the JSON order.
+        const nextWord = this.vocabulary.find(word => !this.usedWordIds.includes(word.id));
+        return nextWord ?? null;
     }
 
     markAsUsed(id) {

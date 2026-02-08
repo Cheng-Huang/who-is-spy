@@ -2,15 +2,24 @@ import React, { useState } from 'react';
 import SetupScreen from './components/SetupScreen';
 import RoleReveal from './components/RoleReveal';
 import GamePhase from './components/GamePhase';
+import AudienceOverview from './components/AudienceOverview';
 import { wordManager } from './utils/WordManager';
 
 function App() {
-  const [phase, setPhase] = useState('setup'); // setup, reveal, game
-  const [playerCount, setPlayerCount] = useState(4);
+  const [phase, setPhase] = useState('setup'); // setup, audience, reveal, game
+  const [playerCount, setPlayerCount] = useState(5);
   const [spyCount, setSpyCount] = useState(1);
   const [whiteboardEnabled, setWhiteboardEnabled] = useState(false);
   const [players, setPlayers] = useState([]);
   const [currentWordId, setCurrentWordId] = useState(null);
+
+  const resolvePublicUrl = (urlPath) => {
+    if (!urlPath) return '';
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+    const normalizedPath = urlPath.startsWith('/') ? urlPath.slice(1) : urlPath;
+    return `${normalizedBase}${normalizedPath}`;
+  };
 
   const startGame = () => {
     // 1. Get random unused word pair
@@ -28,7 +37,7 @@ function App() {
 
     // Add spies
     for (let i = 0; i < spyCount; i++) {
-      roles.push({ role: 'spy', word: wordPair.spy, image: wordPair.spyImage });
+      roles.push({ role: 'spy', word: wordPair.spy, image: resolvePublicUrl(wordPair.spyImage) });
     }
 
     // Add whiteboard if enabled
@@ -39,14 +48,14 @@ function App() {
     // Fill rest with civilians
     const civilianCount = playerCount - roles.length;
     for (let i = 0; i < civilianCount; i++) {
-      roles.push({ role: 'civilian', word: wordPair.civilian, image: wordPair.civilianImage });
+      roles.push({ role: 'civilian', word: wordPair.civilian, image: resolvePublicUrl(wordPair.civilianImage) });
     }
 
     // 3. Shuffle roles
     roles = roles.sort(() => Math.random() - 0.5);
 
     setPlayers(roles);
-    setPhase('reveal');
+    setPhase('audience');
   };
 
   const handleRevealComplete = () => {
@@ -73,6 +82,13 @@ function App() {
           whiteboardEnabled={whiteboardEnabled}
           setWhiteboardEnabled={setWhiteboardEnabled}
           onStart={startGame}
+        />
+      )}
+
+      {phase === 'audience' && (
+        <AudienceOverview
+          players={players}
+          onClose={() => setPhase('reveal')}
         />
       )}
 
